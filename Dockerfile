@@ -1,11 +1,14 @@
-FROM eclipse-temurin:17-jdk-alpine
+# Use stable image (NOT alpine)
+FROM maven:3.9.9-eclipse-temurin-17 AS build
 
 WORKDIR /app
-
 COPY . .
+RUN mvn clean package -DskipTests
 
-RUN chmod +x mvnw
+# Runtime image
+FROM eclipse-temurin:17-jdk
 
-RUN ./mvnw clean package -DskipTests
+WORKDIR /app
+COPY --from=build /app/target/*.jar app.jar
 
-CMD ["java", "-jar", "target/Task_Manager-0.0.1-SNAPSHOT.jar"]
+ENTRYPOINT ["java","-jar","app.jar"]
